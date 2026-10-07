@@ -9,7 +9,7 @@
 <meta property="og:title" content="Cookie House · A Little San Francisco">
 <meta property="og:description" content="A little world to explore, share a treat, and keep a memory. 中文 · English · 日本語">
 <meta property="og:type" content="website">
-<link rel="stylesheet" href="./sky-friends.css?v=20261007-brains1">
+<link rel="stylesheet" href="./sky-friends.css?v=20261007-brains3d2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Pacifico&display=swap" rel="stylesheet">
@@ -294,13 +294,13 @@ import { buildToy } from './toy-models.js?v=20260929-food1';
 import { createToyCollection } from './toy-collection.js?v=20260929-food1';
 import { buildChinatown, createChinatownUI, chinaWords } from './chinatown.js?v=20260929-tea4';
 import { createTeaExperience } from './tea-experience.js?v=20260929-tea4';
-import { createPolaroid } from './polaroid.js?v=20261007-brains1';
+import { createPolaroid } from './polaroid.js?v=20261007-brains3d2';
 import {buildWharf} from './wharf-models.js?v=20260930-puppet1';
 import {wharfGround} from './wharf-state.js?v=1';
 import {createWharfExperience,wharfView} from './wharf-experience.js?v=20260930-puppet1';
-import {createBrain} from './brain-models.js?v=20261007-brains1';
-import {createSkyFriends} from './sky-friends.js?v=20261007-brains1';
-import {createPublicGuide} from './public-guide.js?v=20261007-brains1';
+import {createBrain} from './brain-models.js?v=20261007-brains3d2';
+import {createSkyFriends} from './sky-friends.js?v=20261007-brains3d2';
+import {createPublicGuide} from './public-guide.js?v=20261007-brains3d2';
 let wharfExperience=null,publicGuide=null,skyFriends=null;
 let groceryExperience = null, photoExperience = null, toyExperience = null, chinaExperience = null, coastExperience = null, teaExperience = null;
 
@@ -2437,6 +2437,7 @@ function focusChar(i) {
   releaseChar();
   const c = chars[i]; mode = 'focus'; focusIdx = i; c.path = []; c.wait = c.brain ? .5 : 1e9; c.jv = c.brain?0:3; c.faceCam = !c.brain;
   burst(charTop(c), c.fx); pop(i);
+  if(c.brain&&c.skyState==='flying')c.yaw=Math.atan2(camera.position.x-c.x,camera.position.z-c.z);
   const cp = V(c.x, c.y, c.z), H = c.height * SCALE;
   const dir = camera.position.clone().sub(cp); dir.y = 0; if (dir.lengthSq() < 0.01) dir.set(0, 0, 1); dir.normalize();
   const d = Math.max(2.4, H * 2.1) * (camera.aspect < 1 ? (c.brain?2.5:1.6) : 1);

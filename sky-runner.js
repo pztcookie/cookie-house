@@ -1,6 +1,6 @@
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
-import {createBrain} from './brain-models.js?v=20261007-brains1';
-import {createRun,startRun,pauseRun,resumeRun,runInput,stepRun,scoreRun,readSkyRecords,saveRunRecord,RUN_DISTANCE,LANE_WIDTH} from './sky-runner-state.js?v=20261007-brains1';
+import {createBrain} from './brain-models.js?v=20261007-brains3d2';
+import {createRun,startRun,pauseRun,resumeRun,runInput,stepRun,scoreRun,readSkyRecords,saveRunRecord,RUN_DISTANCE,LANE_WIDTH} from './sky-runner-state.js?v=20261007-brains3d2';
 const COPY={
  zh:{title:'脑洞云端跑酷',intro:'沿云朵跑道收集星星。避开大云团，跳过矮栏，滑过星星拱门。',help:'← → 换道 · ↑ / 空格跳跃 · ↓ 滑行，也可以滑动屏幕',start:'出发！',again:'再跑一次',exit:'回到小世界',pause:'暂停',resume:'继续跑',paused:'在云上休息一下',over:'这次的云端旅程',complete:'抵达彩虹终点！',best:'最高分',score:'得分',stars:'星星',distance:'米',saved:'成绩已保存在这个浏览器',saveError:'浏览器未能保存这次成绩',jump:'跳跃',slide:'滑行',left:'向左',right:'向右',ready:'免费游玩 · 三颗爱心 · 600 米'},
  en:{title:'Brain Cloud Run',intro:'Collect stars on the cloud lanes. Dodge big clouds, jump low rails, and slide under star arches.',help:'← → lanes · ↑ / Space jump · ↓ slide · or swipe',start:'Let’s go!',again:'Run again',exit:'Back to the world',pause:'Pause',resume:'Keep running',paused:'A little cloud break',over:'Your cloud adventure',complete:'Rainbow finish!',best:'Best',score:'Score',stars:'Stars',distance:'m',saved:'Record saved in this browser',saveError:'This browser could not save this record.',jump:'Jump',slide:'Slide',left:'Left',right:'Right',ready:'Free play · 3 hearts · 600 m'},
