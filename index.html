@@ -9,6 +9,7 @@
 <meta property="og:title" content="Cookie House · A Little San Francisco">
 <meta property="og:description" content="A little world to explore, share a treat, and keep a memory. 中文 · English · 日本語">
 <meta property="og:type" content="website">
+<link rel="stylesheet" href="./sky-friends.css?v=20261007-brains1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Pacifico&display=swap" rel="stylesheet">
@@ -254,6 +255,8 @@ body.riding #statBar,body.riding #craftCollection{visibility:hidden}
     <button class="chip" data-c="0"><span class="dot" style="background:#c68463;box-shadow:inset 0 0 0 3px #9fdcff"></span><span class="nm">曲奇</span></button>
     <button class="chip" data-c="1"><span class="dot" style="background:#6fd4fb"></span><span class="nm">蓝毛怪</span></button>
     <button class="chip" data-c="2"><span class="dot" style="background:#cf8468;box-shadow:inset 0 0 0 3px #a8d8f5"></span><span class="nm">曲奇狗</span></button>
+    <button class="chip" data-c="3"><span class="dot" style="background:#dab2ed">✦</span><span class="nm">巫师脑脑</span></button>
+    <button class="chip" data-c="4"><span class="dot" style="background:#f3bdd8">✧</span><span class="nm">天使脑脑</span></button>
   </div>
   <div id="hint"></div>
 </div>
@@ -291,12 +294,14 @@ import { buildToy } from './toy-models.js?v=20260929-food1';
 import { createToyCollection } from './toy-collection.js?v=20260929-food1';
 import { buildChinatown, createChinatownUI, chinaWords } from './chinatown.js?v=20260929-tea4';
 import { createTeaExperience } from './tea-experience.js?v=20260929-tea4';
-import { createPolaroid } from './polaroid.js?v=20260930-wharf1';
+import { createPolaroid } from './polaroid.js?v=20261007-brains1';
 import {buildWharf} from './wharf-models.js?v=20260930-puppet1';
 import {wharfGround} from './wharf-state.js?v=1';
 import {createWharfExperience,wharfView} from './wharf-experience.js?v=20260930-puppet1';
-import {createPublicGuide} from './public-guide.js?v=1';
-let wharfExperience=null,publicGuide=null;
+import {createBrain} from './brain-models.js?v=20261007-brains1';
+import {createSkyFriends} from './sky-friends.js?v=20261007-brains1';
+import {createPublicGuide} from './public-guide.js?v=20261007-brains1';
+let wharfExperience=null,publicGuide=null,skyFriends=null;
 let groceryExperience = null, photoExperience = null, toyExperience = null, chinaExperience = null, coastExperience = null, teaExperience = null;
 
 /* ================= renderer / scene ================= */
@@ -413,6 +418,11 @@ const I18N = {
     st_home: '小屋駅', st_jt: '日本町駅', st_wharf: 'フィッシャーマンズワーフ', st_gg: 'ゴールデンゲート', st_china: 'チャイナタウン',
   },
 };
+
+Object.assign(I18N.zh,{c3:'巫师脑脑',c3d:'紫色星月帽与扫帚，装着天马行空的小想法。',c4:'天使脑脑',c4d:'浅蓝翅膀和金色光环，轻轻飞过小世界。'});
+Object.assign(I18N.en,{c3:'Witch Brain',c3d:'A starry purple hat, a broom, and a head full of adventures.',c4:'Angel Brain',c4d:'Pale blue wings and a golden halo, floating over the world.'});
+Object.assign(I18N.ja,{c3:'魔法のブレイン',c3d:'星と月の紫の帽子とほうきで、想像の空へ。',c4:'天使のブレイン',c4d:'水色の翼と金色の輪で、ふわりと世界を飛ぶ。'});
+
 for(const [locale,labels] of Object.entries({zh:{area_wharf:'渔人码头',sp_wharf:'码头全景',sp_bakery:'浓汤面包店',sp_chowder:'海景餐桌',sp_seaLions:'看海狮'},en:{area_wharf:'Fisherman’s Wharf',sp_wharf:'Wharf view',sp_bakery:'Chowder bakery',sp_chowder:'Seaside table',sp_seaLions:'Sea lions'},ja:{area_wharf:'フィッシャーマンズワーフ',sp_wharf:'ワーフ全景',sp_bakery:'チャウダーのお店',sp_chowder:'海辺のテーブル',sp_seaLions:'アシカを見る'}}))Object.assign(I18N[locale],labels);
 let lang = 'zh';
 try { const sv = localStorage.getItem('cookieHouse.lang'); if (sv && I18N[sv]) lang = sv; else { const nl = (navigator.language || '').toLowerCase(); lang = nl.startsWith('ja') ? 'ja' : nl.startsWith('en') ? 'en' : 'zh'; } } catch (e) {}
@@ -1343,11 +1353,17 @@ function makeDog(M = CL) {
       tail.rotation.z = Math.sin(t * 12) * 0.5; ears.forEach((e, k) => (e.rotation.x = Math.sin(ch.phase * 2 + k) * 0.18 * ch.amp)); } };
 }
 
+function makeWitchBrain(){return createBrain({THREE,mesh,sph,stick,V},'witch');}
+function makeAngelBrain(){return createBrain({THREE,mesh,sph,stick,V},'angel');}
 const CHAR_DEF = [
   { make: makeCookie, name: '曲奇', desc: '披着一条长长的蓝丝带，戴白手套的大曲奇', speed: 1.5, fx: 'heart', start: [2.2, 0, 0.3] },
   { make: makeMonster, name: '蓝毛怪', desc: '像拖把一样毛茸茸的蓝色小怪，没有手', speed: 1.6, fx: 'spark', start: [2.4, F1, -1.0] },
   { make: makeDog, name: '曲奇狗', desc: '系着蓝丝带、满身巧克力豆的曲奇狗', speed: 1.9, fx: 'tri', start: [-6.5, 0, 6.0] },
 ];
+CHAR_DEF.push(
+ {make:makeWitchBrain,name:'巫师脑脑',brain:true,speed:1.6,fx:'spark',start:[-5.5,10.8,5]},
+ {make:makeAngelBrain,name:'天使脑脑',brain:true,speed:1.7,fx:'heart',start:[6,12,3]}
+);
 const SCALE = 0.8;
 const chars = CHAR_DEF.map((d, i) => {
   const o = d.make(); o.root.scale.setScalar(SCALE);
@@ -1359,7 +1375,8 @@ const chars = CHAR_DEF.map((d, i) => {
     path: [], wait: 1 + Math.random() * 2, stuck: 0, lastD: 1e9, jump: 0, jv: 0, squash: 0, blinkT: 2 + Math.random() * 3, ripple,
     carried: false, carryT: V(0, 0, 0), carryY: 0, good: { x: d.start[0], y: d.start[1], z: d.start[2] } });
 });
-chars.forEach(c => (c.radius *= SCALE));
+chars.forEach(c => {c.radius *= SCALE;if(CHAR_DEF[c.i].brain){c.brain=true;c.skyState='flying';c.airAnchor={x:c.x,y:c.y,z:c.z};c.good={x:8,y:0,z:5};c.root.position.set(c.x,c.y,c.z);}});
+const groundFriends=chars.slice(0,3);
 { const pl = makeMonster(); pl.root.scale.setScalar(0.34); pl.root.position.set(1.25, F1 + 0.02, -3.5); pl.root.rotation.y = 0.3; room.add(pl.root); }
 const ring = new THREE.Mesh(new THREE.RingGeometry(0.46, 0.58, 40), new THREE.MeshBasicMaterial({ color: '#5aaeea', transparent: true, opacity: 0.75, depthWrite: false }));
 ring.rotation.x = -Math.PI / 2; ring.visible = false; scene.add(ring);
@@ -1934,7 +1951,7 @@ function pickGoal(ch) {
   if (lv === 'S') { const R = RAMPS.find(q => inR(q.r, ch.x, ch.z)) || RAMPS[0]; ch.path = [ch.y > F1 / 2 ? R.top : R.bottom]; return; }
   ch.path = []; ch.lastD = 1e9;
   const roll = Math.random();
-  if (lv === 0 && roll < 0.1) {   // ride the cable car
+  if (!ch.brain && lv === 0 && roll < 0.1) {   // ride the cable car
     ch.path = area === 'home'
       ? [...homeRoute(here, { x: 8.5, z: 4 }), { x: 8.5, z: 4 }, { x: 8.5, z: -6.5 }, { x: 2, z: -7.8 }, { x: 2 + (Math.random() - 0.5), z: -11.2, tram: true }]
       : [...jtRoute(here, { x: 26, z: -2.0 }), { x: 26, z: -2.0 }, { x: 26, z: -8.6 }, { x: 26 + (Math.random() - 0.5), z: -11.2, tram: true }];
@@ -1999,7 +2016,7 @@ function tramTick(dt) {
   const t=tramState;if(tramPaused())return;
   if(t.at>=0){
     t.dwell-=dt;const st=STOPS[t.at];
-    if(t.dwell<3.8&&t.dwell>.6)chars.forEach(c=>{if(!c.riding&&!c.carried&&!c.cutscene&&!c.dining&&!(c.cool>0)&&Math.abs(c.y-st.y)<.6&&inR(st.plat,c.x,c.z)&&(c.wantTram||(mode==='follow'&&controlled===c.i)))board(c,t.at);});
+    if(t.dwell<3.8&&t.dwell>.6)chars.forEach(c=>{if(!c.brain&&!c.riding&&!c.carried&&!c.cutscene&&!c.dining&&!(c.cool>0)&&Math.abs(c.y-st.y)<.6&&inR(st.plat,c.x,c.z)&&(c.wantTram||(mode==='follow'&&controlled===c.i)))board(c,t.at);});
     if(t.dwell<=0){const next=nextStop(t.at,t.dir);t.from=t.at;t.next=next.stop;t.dir=next.direction;t.progress=0;t.at=-1;ding(true);}
   }else{
     const end=[t.from,t.next].includes(2)?2:[t.from,t.next].includes(4)?4:null,curve=end===2?transitExtension.curve:end===4?transitExtension.wharfCurve:null,curved=!!curve,from=V(...STOPS[t.from].car),to=V(...STOPS[t.next].car),length=curved?curve.getLength():from.distanceTo(to);
@@ -2302,7 +2319,7 @@ function flyTo(v, dur = 1.4) {
   tween = { t: 0, dur, lift, p0: camera.position.clone(), t0: controls.target.clone(), p1: v.pos.clone(), t1: v.target.clone(), f0: camera.fov, f1: v.fov || 38 };
 }
 function updateOrbitLimits(){
-  resetOrbitLimits();if(tween)return;
+  resetOrbitLimits();if(mode==='sky'){controls.minDistance=25;controls.maxDistance=500;controls.minPolarAngle=.08;controls.maxPolarAngle=.66;return;}if(tween)return;
   controls.minDistance=groceryExperience?.minDistance()??(mode==='orbit'?(space==='tako'?5.2:space==='stat'?4.8:2.6):1.6);
   if(mode==='orbit'&&space.startsWith('tram')){
     const st=STOPS.find(s=>s.space===space),angle=st.yaw===Math.PI?0:Math.PI;
@@ -2364,6 +2381,7 @@ function refreshUI() {
   document.querySelectorAll('#spaces .chip').forEach(b => { const on = (mode === 'orbit'||mode==='approach') && b.dataset.s === space; b.classList.toggle('on', on); if (on) b.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); });
   const sel = mode === 'focus' ? focusIdx : mode === 'follow' ? controlled : -1;
   document.querySelectorAll('#chars .chip[data-c]').forEach(b => b.classList.toggle('on', +b.dataset.c === sel));
+  $('#cMain').disabled=false;
   const card = $('#card');
   card.hidden = sel < 0;
   if (sel >= 0) {
@@ -2388,9 +2406,10 @@ function refreshUI() {
   teaExperience?.refresh();
   wharfExperience?.refresh();
   publicGuide?.refresh();
+  skyFriends?.refresh();
 }
 function goSpace(id) {
-  if(ride.busy)return;approach=null;cine=false;$('#ticket').hidden=true;$('#placeTip').hidden=true;
+  if(ride.busy)return;skyFriends?.leave();approach=null;cine=false;$('#ticket').hidden=true;$('#placeTip').hidden=true;
   wharfExperience?.leave();
   teaExperience?.leave();
   coastExperience?.leave();
@@ -2407,6 +2426,7 @@ function releaseChar() {
   focusIdx = -1; controlled = -1;
 }
 function focusChar(i) {
+  if(skyFriends?.busy())skyFriends.leave();
   approach=null;
   wharfExperience?.leave();
   teaExperience?.leave();
@@ -2415,15 +2435,16 @@ function focusChar(i) {
   if (meal.active) return;
   if (chars[i].cutscene) return;
   releaseChar();
-  const c = chars[i]; mode = 'focus'; focusIdx = i; c.path = []; c.wait = 1e9; c.jv = 3; c.faceCam = true;
+  const c = chars[i]; mode = 'focus'; focusIdx = i; c.path = []; c.wait = c.brain ? .5 : 1e9; c.jv = c.brain?0:3; c.faceCam = !c.brain;
   burst(charTop(c), c.fx); pop(i);
   const cp = V(c.x, c.y, c.z), H = c.height * SCALE;
   const dir = camera.position.clone().sub(cp); dir.y = 0; if (dir.lengthSq() < 0.01) dir.set(0, 0, 1); dir.normalize();
-  const d = Math.max(2.4, H * 2.1) * (camera.aspect < 1 ? 1.6 : 1);
+  const d = Math.max(2.4, H * 2.1) * (camera.aspect < 1 ? (c.brain?2.5:1.6) : 1);
   flyTo({ target: V(c.x, c.y + H * 0.5, c.z), pos: cp.clone().addScaledVector(dir, d).add(V(0, H * 0.8, 0)) }, 1.1);
   refreshUI();
 }
 function controlChar(i) {
+  if(chars[i]?.brain&&chars[i].skyState!=='ground'){skyFriends.land(i,true);return;}
   focusIdx = -1; controlled = i; mode = 'follow'; const c = chars[i]; c.path = []; c.wait = 0; c.faceCam = false;
   const cp = V(c.x, c.y + 0.9, c.z), dir = camera.position.clone().sub(controls.target).normalize();
   flyTo({ target: cp, pos: cp.clone().addScaledVector(dir, 7) }, 0.9); refreshUI();
@@ -2487,7 +2508,7 @@ const nearestStation = () => closestStation(tram.position);
 function openTicket(from) {
   if (meal.active || ride.busy || coastExperience?.busy() || teaExperience?.busy() || wharfExperience?.busy() || !STATIONS[from]?.open) return;
   tk.from = from; tk.to = STATIONS.findIndex((s, i) => s.open && i !== from);
-  tk.pass = new Set(chars.map((c, i) => i));
+  tk.pass = new Set(groundFriends.map((c, i) => i));
   renderTicket(); $('#ticket').hidden = false; $('#tkBook').hidden = true; tone(880, 0, 0.15, 'sine', 0.1, 1.3);
 }
 function renderTicket() {
@@ -2497,7 +2518,7 @@ function renderTicket() {
     return `<button class="st ${cls}" data-i="${i}" ${!s.open || here ? 'disabled' : ''} aria-pressed="${sel}"><span class="sd"></span><b>${T(s.key)}</b><small>${here ? T('here') : !s.open ? T(s.walk?'walkVisit':'soon') : sel ? T('dest') : '&nbsp;'}</small></button>`;
   }).join('');
   $('#tkWho').textContent = T('who');
-  $('#tkPass').innerHTML = chars.map((c, i) => `<button class="chip ${tk.pass.has(i) ? 'on' : ''}" data-p="${i}" aria-pressed="${tk.pass.has(i)}"><span class="dot" style="${DOTS[i]}"></span>${T('c' + i)}</button>`).join('');
+  $('#tkPass').innerHTML = groundFriends.map((c, i) => `<button class="chip ${tk.pass.has(i) ? 'on' : ''}" data-p="${i}" aria-pressed="${tk.pass.has(i)}"><span class="dot" style="${DOTS[i]}"></span>${T('c' + i)}</button>`).join('');
   const n = tk.pass.size, total = n * FARE;
   $('#tkPrice').textContent = T('fare', n, total, store.coins);
   $('#tkGo').textContent = T('go'); $('#tkGo').disabled = !(n > 0 && tk.to >= 0 && store.coins >= total);
@@ -2660,10 +2681,11 @@ $('#bookClose').addEventListener('click', () => ($('#tkBook').hidden = true));
 /* ================= input ================= */
 const keys = new Set();
 addEventListener('keydown', e => {
+  if(e.target.closest('input,textarea,[contenteditable="true"]'))return;
   const k = e.key.toLowerCase(); keys.add(k);
   if (k === ' ' && mode === 'follow') { const c = chars[controlled]; if (c.jump <= 0.001) c.jv = 3.6; e.preventDefault(); }
   if (k === 'escape') { if (meal.active) finishMeal(); ['#ticket', '#tkBook', '#souvenir', '#langMenu', '#soundMenu'].forEach(q => ($(q).hidden = true)); $('#btnSound').setAttribute('aria-expanded','false'); if (mode !== 'orbit') goSpace(space); }
-  if (k.startsWith('arrow') && mode === 'follow') e.preventDefault();
+  if (k.startsWith('arrow') && ['follow','sky'].includes(mode)) e.preventDefault();
 });
 addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
 addEventListener('blur', () => keys.clear());
@@ -2684,6 +2706,7 @@ function setRay(e) { ndc.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / inner
 function pickChar(e) { setRay(e); const h = ray.intersectObjects(pickables, false)[0]; return h ? h.object.userData.ch : null; }
 let press = null;
 dom.addEventListener('pointerdown', e => {
+  if(skyFriends?.busy())return;
   if (press && press.id !== e.pointerId) { if (!press.carrying) { if (press.ch !== null) controls.enabled = true; press = null; } return; }
   if (meal.active || coastExperience?.busy() || teaExperience?.busy() || wharfExperience?.busy()) return;
   setRay(e);
@@ -2694,6 +2717,7 @@ dom.addEventListener('pointerdown', e => {
   tween = null;
 }, { capture: true });
 dom.addEventListener('pointermove', e => {
+  if(skyFriends?.busy())return;
   setRay(e); if(toyExperience?.move(e,ray))return;
   if (press && press.id === e.pointerId && press.ch !== null) {
     if (!press.carrying && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 6) { press.carrying = true; startCarry(press.ch); }
@@ -2708,10 +2732,11 @@ dom.addEventListener('pointermove', e => {
   }
 });
 function endPress(e) {
+  if(skyFriends?.busy())return;
   setRay(e); if(toyExperience?.up(e,ray))return;
   if (!press || press.id !== e.pointerId) return;
   const p = press; press = null;
-  if (p.ch !== null) { controls.enabled = true; if (p.carrying) drop(chars[p.ch]); else focusChar(p.ch); return; }
+  if (p.ch !== null) { controls.enabled = true; if (p.carrying) drop(chars[p.ch]); else if(chars[p.ch].brain&&chars[p.ch].skyState==='flying')skyFriends.land(p.ch);else focusChar(p.ch); return; }
   if (Math.hypot(e.clientX - p.x, e.clientY - p.y) > 6 || performance.now() - p.t > 500 || e.type === 'pointercancel') return;
   setRay(e);
   const carHit=ray.intersectObject(tramBody,true)[0];
@@ -2742,9 +2767,9 @@ function endPress(e) {
 dom.addEventListener('pointerup', endPress);
 dom.addEventListener('pointercancel', endPress);
 function startCarry(i) {
-  const c = chars[i];
+  const c = chars[i];skyFriends?.detachForCarry(c);
   if (mode === 'focus' && focusIdx === i) { focusIdx = -1; mode = 'orbit'; refreshUI(); }
-  c.riding = false; c.wantTram = false; c.carried = true; c.path = []; c.faceCam = false; c.carryY = c.y; c.carryT.copy(c.root.position);
+  c.riding = false; c.wantTram = false; c.carried = true; c.path = []; c.faceCam = false; c.carryY = c.brain?c.good.y:c.y; c.carryT.copy(c.root.position);
   dom.style.cursor = 'grabbing'; tone(660, 0, 0.18, 'sine', 0.12, 1.5);
 }
 function carryTo(c, e) {
@@ -2783,6 +2808,7 @@ function applyNight(t) {
 /* ================= main loop ================= */
 const clock = new THREE.Clock(), fwd = new THREE.Vector3(), right = new THREE.Vector3();
 function updateChar(ch, dt, t) {
+  if(skyFriends?.updateCharacter(ch,dt,t))return;
   if (ch.cool > 0) ch.cool -= dt;
   if (ch.dining) return;
   if (ch.cutscene) {
@@ -2837,7 +2863,7 @@ function updateChar(ch, dt, t) {
 }
 function separate() {
   for (let a = 0; a < chars.length; a++) for (let b = a + 1; b < chars.length; b++) {
-    const A = chars[a], Bc = chars[b]; if (A.carried || Bc.carried || A.riding || Bc.riding || A.cutscene || Bc.cutscene || Math.abs(A.y - Bc.y) > 1) continue;
+    const A = chars[a], Bc = chars[b]; if ((A.brain&&A.skyState!=='ground')||(Bc.brain&&Bc.skyState!=='ground')||A.carried || Bc.carried || A.riding || Bc.riding || A.cutscene || Bc.cutscene || Math.abs(A.y - Bc.y) > 1) continue;
     const dx = Bc.x - A.x, dz = Bc.z - A.z, d = Math.hypot(dx, dz) || 0.001, min = A.radius + Bc.radius;
     if (d < min) { const push = (min - d) / 2; move(A, -dx / d * push, -dz / d * push); move(Bc, dx / d * push, dz / d * push); }
   }
@@ -2845,6 +2871,7 @@ function separate() {
 let simT = 0;
 function frame() {
   const dt = Math.min(clock.getDelta(), 0.05); simT += dt;
+  if(skyFriends?.runner.active()){skyFriends.runner.update(dt);skyFriends.runner.render(renderer);requestAnimationFrame(frame);return;}
   chinaModel.update(dt,simT,space);
   tick(dt, simT);
   coastExperience?.update(dt,simT);
@@ -2877,6 +2904,7 @@ function tick(dt, t) {
     const d = want.sub(controls.target).multiplyScalar(1 - Math.exp(-dt * 5));
     controls.target.add(d); camera.position.add(d);
   }
+  skyFriends?.update(dt,t);
   controls.autoRotate = cine && mode === 'orbit';
   // Keep a stable near plane. Moving it to the orbit target sliced buildings and terrain.
   updateOrbitLimits();
@@ -2944,24 +2972,35 @@ chinaExperience = createChinatownUI({lang:()=>lang,location:()=>({space,mode}),n
  invite:i=>{if(meal.active||ride.busy)return;const c=chars[i];c.riding=false;c.wantTram=false;c.cutscene=false;c.path=[];c.x=space==='tea'?-26.5:-31+(i-1)*.85;c.z=space==='tea'?-1.5+(i-1)*1.1:space==='china'?10.7:2;c.y=space==='tea'?.16:0;c.root.position.set(c.x,.05,c.z);c.good={x:c.x,z:c.z,y:0};c.wait=6;c.yaw=space==='tea'?-Math.PI/2:0;burst(c.root.position.clone(),'heart',5);}
 },chinaModel);
 
-coastExperience = createCoastExperience({THREE,scene,chars,store,controls,V,save:saveStore,dispose:disposeMealObject,lang:()=>lang,location:()=>({space,mode}),name:(i,locale=lang)=>I18N[locale]['c'+i],portrait:()=>camera.aspect<1,busy:()=>meal.active||ride.busy||!!teaExperience?.busy()||!!wharfExperience?.busy(),toast,wallet:refreshShopUI,chime:()=>tone(900,0,.15,'sine',.08,1.2),go:goSpace,photo:()=>photoExperience?.open(),fly:flyTo,
+coastExperience = createCoastExperience({THREE,scene,chars:groundFriends,store,controls,V,save:saveStore,dispose:disposeMealObject,lang:()=>lang,location:()=>({space,mode}),name:(i,locale=lang)=>I18N[locale]['c'+i],portrait:()=>camera.aspect<1,busy:()=>meal.active||ride.busy||!!teaExperience?.busy()||!!wharfExperience?.busy(),toast,wallet:refreshShopUI,chime:()=>tone(900,0,.15,'sine',.08,1.2),go:goSpace,photo:()=>photoExperience?.open(),fly:flyTo,
  enter:id=>{releaseChar();space=id;mode='orbit';cine=false;tween=null;refreshUI();},
  track:(target,pos,fov,dt)=>{tween=null;camera.position.lerp(pos,Math.min(1,dt*2));controls.target.lerp(target,Math.min(1,dt*2));camera.fov=THREE.MathUtils.lerp(camera.fov,fov,Math.min(1,dt*2));camera.updateProjectionMatrix();controls.update();}
 },coastModel);
 
-teaExperience = createTeaExperience({THREE,chars,V,store,save:saveStore,lang:()=>lang,location:()=>({space,mode}),name:i=>T('c'+i),portrait:()=>camera.aspect<1,
+teaExperience = createTeaExperience({THREE,chars:groundFriends,V,store,save:saveStore,lang:()=>lang,location:()=>({space,mode}),name:i=>T('c'+i),portrait:()=>camera.aspect<1,
   busy:()=>meal.active||ride.busy||!!coastExperience?.busy()||!!wharfExperience?.busy(),toast,wallet:refreshShopUI,chime:()=>tone(750,0,.13,'sine',.055,1.1),go:goSpace,fly:flyTo,dispose:disposeMealObject,
   enter:id=>{releaseChar();space=id;mode='orbit';cine=false;refreshUI();}
 },chinaModel);
 
-wharfExperience=createWharfExperience({THREE,scene,chars,V,store,save:saveStore,dispose:disposeMealObject,lang:()=>lang,location:()=>({space,mode}),name:i=>T('c'+i),aspect:()=>camera.aspect,
+wharfExperience=createWharfExperience({THREE,scene,chars:groundFriends,V,store,save:saveStore,dispose:disposeMealObject,lang:()=>lang,location:()=>({space,mode}),name:i=>T('c'+i),aspect:()=>camera.aspect,
  busy:()=>meal.active||ride.busy||!!coastExperience?.busy()||!!teaExperience?.busy(),toast,wallet:refreshShopUI,chime:()=>tone(750,0,.12,'sine',.05,1),go:goSpace,fly:flyTo,photo:()=>photoExperience?.open(),approach:approachBuilding,
  enter:id=>{releaseChar();space=id;mode='orbit';cine=false;refreshUI();}
 },wharfModel);
 publicGuide=createPublicGuide(()=>lang);
 
-photoExperience = createPolaroid({ THREE, pagoda:pagodaRoot, chinaScene:place=>chinaModel.photoScene(place), bridgeScene:()=>coastModel.photoScene(),wharfScene:()=>wharfModel.photoScene(), characterMakers:[makeCookie,makeMonster,makeDog],
+photoExperience = createPolaroid({ THREE, pagoda:pagodaRoot, chinaScene:place=>chinaModel.photoScene(place), bridgeScene:()=>coastModel.photoScene(),wharfScene:()=>wharfModel.photoScene(), characterMakers:[makeCookie,makeMonster,makeDog,makeWitchBrain,makeAngelBrain],
   lang:()=>lang, location:()=>({space,mode}), characterName:i=>T('c'+i), chime:()=>tone(1100,0,.12,'triangle',.09,1.2)
+});
+
+skyFriends=createSkyFriends({THREE,B,sph,mesh,stick,V,chars,camera,controls,canvas:renderer.domElement,
+ lang:()=>lang,selected:()=>mode==='focus'?focusIdx:mode==='follow'?controlled:-1,
+ busy:()=>ride.busy||meal.active||!!coastExperience?.busy()||!!teaExperience?.busy()||!!wharfExperience?.busy(),
+ findSpot,focus:focusChar,control:controlChar,refresh:refreshUI,input:()=>keys,
+ cancelTween:()=>{tween=null;},view:(target,pos,fov,duration)=>flyTo({target,pos,fov},duration),
+ chime:()=>tone(1050,0,.07,'sine',.035,1.25),
+ enterSky:()=>{const saved={space};releaseChar();mode='sky';cine=false;approach=null;controls.enabled=true;keys.clear();return saved;},
+ enterRunner:()=>{releaseChar();mode='runner';cine=false;tween=null;controls.enabled=false;keys.clear();refreshUI();},
+ restore:saved=>{mode='orbit';if(saved?.space)space=saved.space;controls.enabled=true;controls.enablePan=true;tween=null;keys.clear();resetOrbitLimits();refreshUI();}
 });
 
 (async () => {

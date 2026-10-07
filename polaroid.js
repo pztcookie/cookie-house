@@ -20,7 +20,7 @@ export function createPolaroid(H){
   const photoTitle=()=>photoPlace==='wharf'?({zh:'渔人码头的拍立得',en:'A Fisherman’s Wharf Polaroid',ja:'ワーフでチェキ'}[H.lang()]):photoPlace==='gg'?({zh:'金门大桥的拍立得',en:'A Golden Gate Polaroid',ja:'金門橋でチェキ'}[H.lang()]||'Golden Gate'):photoPlace!=='plaza'?({zh:'中国城里的拍立得',en:'A Polaroid in Chinatown',ja:'チャイナタウンでチェキ'}[H.lang()]||'Chinatown'):tr('title');
   function labels(){
     modal.setAttribute('aria-label',photoTitle());$('#photoTitle').textContent=photoTitle();modal.querySelector('[data-photo="close"]').setAttribute('aria-label',tr('close'));
-    $('#photoWho').textContent=tr('who');$('#photoGuests').innerHTML=[0,1,2].map(i=>`<button class="chip ${selection.has(i)?'on':''}" role="checkbox" aria-checked="${selection.has(i)}" data-photo="guest:${i}">${name(i)}</button>`).join('');
+    $('#photoWho').textContent=tr('who');$('#photoGuests').innerHTML=H.characterMakers.map((_,i)=>`<button class="chip ${selection.has(i)?'on':''}" role="checkbox" aria-checked="${selection.has(i)}" data-photo="guest:${i}">${name(i)}</button>`).join('');
     const map={photoCamera:stream?'cameraOff':'camera',photoLeft:'left',photoRight:'right',photoSizeLabel:'size',photoTake:shot?'retake':'take',photoCaptionLabel:'caption',photoSave:'save',photoDownload:'download',photoAlbum:'album'};
     Object.entries(map).forEach(([id,key])=>$('#'+id).textContent=tr(key));$('#photoCaption').placeholder=tr('placeholder');
     $('#photoTake').disabled=!selection.size;$('#photoSave').disabled=!shot||saving;$('#photoDownload').disabled=!shot;
@@ -37,7 +37,12 @@ export function createPolaroid(H){
     const tower=new THREE.Group(),clone=H.pagoda.clone(true);clone.position.set(-20.5,0,5.4);tower.add(clone);tower.scale.setScalar(.43);tower.position.set(.20,.06,-.35);cameraScene.add(tower);pagodaBackdrop=tower;chinaBackdrop=H.chinaScene?.('china');laneBackdrop=H.chinaScene?.('lantern');if(chinaBackdrop)cameraScene.add(chinaBackdrop);if(laneBackdrop)cameraScene.add(laneBackdrop);bridgeBackdrop=H.bridgeScene?.();if(bridgeBackdrop)cameraScene.add(bridgeBackdrop);wharfBackdrop=H.wharfScene?.();if(wharfBackdrop)cameraScene.add(wharfBackdrop);
     models=H.characterMakers.map(fn=>fn());models.forEach(m=>cameraScene.add(m.root));arrange();
   }
-  function arrange(){if(!models)return;const ids=[...selection];models.forEach((m,i)=>{m.root.visible=selection.has(i);m.root.scale.setScalar(.79);m.root.position.set((ids.indexOf(i)-(ids.length-1)/2)*1.13,.05,1.05);m.root.rotation.y=i===2?-.15:0;});}
+  function arrange(){
+    if(!models)return;const ids=[...selection],wide=ids.some(i=>i>=3),widths=[1.9,1.65,1.35,2.85,3.5];
+    const total=ids.reduce((sum,i)=>sum+widths[i],0)+Math.max(0,ids.length-1)*.14,scale=wide?Math.min(.79,4.75/total):.79;let cursor=-total*scale/2;
+    models.forEach((m,i)=>{m.root.visible=selection.has(i);m.root.scale.setScalar(scale);m.root.rotation.y=i===2?-.15:0;});
+    ids.forEach((i,j)=>{const x=wide?cursor+widths[i]*scale/2:(j-(ids.length-1)/2)*1.13;models[i].root.position.set(x,.05,1.05);cursor+=(widths[i]+.14)*scale;});
+  }
   function stopCamera(){streamRequest++;stream?.getTracks().forEach(track=>track.stop());stream=null;video.srcObject=null;if(active)labels();}
   async function enableCamera(){
     if(stream){stopCamera();return;}if(!navigator.mediaDevices?.getUserMedia){$('#photoStatus').textContent=tr('noCamera');return;}
